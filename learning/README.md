@@ -2,24 +2,22 @@
 
 Learning notes are durable project assets.
 
-## Daily Note
+The goal is to turn implementation experience into reusable knowledge for the future Hiwan AI system.
 
-Each day uses:
+## Daily Note Structure
 
-# YYYY-MM-DD
-
-## Learned
-
-## Built
-
-## Understood
-
-## Questions
-
-## Next
+- Learned — new concepts, technologies, principles
+- Built — what was installed, configured, coded, or shipped
+- Understood — what is genuinely understood
+- Failed — what failed
+- Gotchas — traps, unexpected behavior, confusing details
+- Decisions — important technical or architectural decisions
+- Questions — unresolved questions
+- Next — next concrete actions
+- Commands — important commands actually used
 
 ## Learning Flow
 
-Learning -> Markdown -> Git -> Knowledge Layer -> Search/RAG -> hiwan.ai /learning
+Learning -> Implementation -> Failed / Gotchas -> Lessons Learned -> Markdown -> Git -> Knowledge Layer
 
-The goal is to turn learning into reusable knowledge for the future Hiwan AI system.
+The goal is to convert daily implementation experience into durable knowledge.
