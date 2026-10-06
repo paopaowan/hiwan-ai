@@ -1,0 +1,12 @@
+[project]
+name = "hiwan-ai"
+version = "0.1.0"
+description = "Local-first personal and family AI agent ecosystem"
+requires-python = ">=3.13,<3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.8",
+]
