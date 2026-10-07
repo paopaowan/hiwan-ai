@@ -23,3 +23,17 @@ __pycache__/
 # Local data
 data/
 tmp/
+
+# Hiwan AI private/local data
+memory/
+knowledge/private/
+private/
+secrets/
+credentials/
+*.db
+*.sqlite
+*.sqlite3
+
+# Local model/runtime data
+models/
+ollama/

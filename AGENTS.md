@@ -1,126 +1,298 @@
 # AGENTS.md
 
-> Hiwan AI OS — AI-facing project entry point
->
-> Version: 1.0
-> Status: Active
-> Last reviewed: 2026-10-06
+## Mission
 
-## 1. Mission
+Hiwan AI OS is a long-term local-first personal and family AI system.
 
-Hiwan AI OS is a local-first personal and family AI operating system.
+The project aims to preserve user-owned knowledge, memory, learning history, projects, and future family capabilities independently from any specific AI model or agent framework.
 
-The project aims to evolve from a personal AI assistant into a trustworthy, modular family agent platform while keeping long-lived data, identity, permissions, memory, models, and tools independently replaceable.
+Richard is the project owner and final human decision-maker.
 
-## 2. Owner and working relationship
+## Core Principles
 
-- Owner: Richard
-- The primary human decision-maker is Richard.
-- AI assistants are consultants and implementation partners, not final authorities.
-- Important architectural decisions should be explainable, reviewable, and recorded.
+1. Local-first for personal and family data.
+2. Agent != Model.
+3. Agent != Memory.
+4. Agent != Data.
+5. Model != Runtime.
+6. Identity -> Policy -> Tool -> Data.
+7. Knowledge should outlive individual models and frameworks.
+8. Prefer OSS and portable interfaces.
+9. Avoid premature framework lock-in.
+10. Human approval is required for high-impact actions.
+11. Evidence is preferred over assumption.
+12. Architecture changes should be independently reviewable.
 
-## 3. Core principles
+## Core Boundaries
 
-1. **Local-first** — private and durable data should remain local whenever practical.
-2. **Agent != Model** — agents must not be tightly coupled to a particular model.
-3. **Agent != Memory** — long-lived memory belongs to a separate data/knowledge layer.
-4. **Agent != Data** — agents access data through explicit tools and policies.
-5. **Identity → Policy → Tool → Data** — access should follow this order.
-6. **Composable OSS first** — prefer proven open-source components over unnecessary reinvention.
-7. **Avoid premature framework lock-in** — do not adopt a large agent framework until a concrete requirement justifies it.
-8. **Human approval for high-impact actions** — especially financial, external, destructive, or family-sensitive actions.
-9. **Knowledge should outlive models** — Markdown, databases, files, and other durable knowledge must remain usable when models or runtimes change.
-10. **Evidence over assumption** — distinguish verified facts, design decisions, hypotheses, and open questions.
+Hiwan AI separates the following concerns:
 
-## 4. Current architecture direction
+```text
+Model
+  !=
+Runtime
+  !=
+Agent
+  !=
+Tool
+  !=
+Memory
+  !=
+Data
+  !=
+Identity
+  !=
+Policy
+```
+
+These boundaries are architectural goals and should be preserved unless a documented decision explicitly changes them.
+
+## Public Software / Private Data
+
+Hiwan AI uses a deliberate public-software / private-data boundary.
+
+### Public repository
+
+The repository may contain:
+
+- source code
+- architecture
+- technical documentation
+- AI context
+- architecture proposals and reviews
+- non-sensitive learning notes
+- tests
+- configuration templates
+- infrastructure definitions that contain no secrets
+- OSS integration code and documentation
+
+### Private/local data
+
+Private personal and family information must remain outside the public repository, including:
+
+- personal memory
+- family memory
+- conversations
+- private documents
+- financial information
+- credentials and secrets
+- API keys and tokens
+- private photos/media
+- local databases
+- private vector indexes
+- local model/runtime data
+
+Public architecture and software are expected.
+
+Private personal/family data is not.
+
+## Public Repository Boundary
+
+Assume this repository is intended to be public.
+
+AI agents must therefore:
+
+- never commit secrets, credentials, API keys, tokens, or private keys
+- never commit personal or family data
+- never introduce real private documents into examples or tests
+- use synthetic/example data when demonstrating personal or family workflows
+- treat local memory and data stores as outside the public repository
+- flag any proposed change that could expose private data through source control
+
+Public architecture and software are expected.
+Private personal/family data is not.
+
+## Local-First Data Tiers
+
+The current direction is:
+
+### L0 — Local Only
+
+Highly sensitive information:
+
+- family data
+- private conversations
+- credentials
+- sensitive personal records
+- private documents
+
+### L1 — Local + Encrypted Backup
+
+User-owned durable knowledge:
+
+- learning
+- project knowledge
+- documentation
+- non-sensitive personal knowledge
+- structured knowledge
+
+### L2 — Cloud Allowed
+
+Non-sensitive workloads:
+
+- public research
+- coding assistance
+- public website content
+- cloud inference when appropriate
+- public web search
+
+The exact implementation is still subject to future architecture decisions.
+
+## Current Architecture Direction
 
 ```text
 hiwan.ai
-   ↓
+    |
+    v
 API Gateway
-   ↓
+    |
+    v
 Agent Runtime
-   ├── Personal Agent
-   ├── Family Agent
-   ├── Language Agent
-   ├── Education Agent
-   ├── Finance Agent
-   ├── Research Agent
-   └── Coding Agent
-   ↓
-MCP / Tools
-   ↓
-Memory / Data Layer
-   ├── PostgreSQL
-   ├── Search / vector layer (later, when justified)
-   ├── Object / file storage
-   └── Markdown knowledge
-   ↓
-Local-first infrastructure
+    |
+    +--> Identity / Policy
+    |
+    +--> MCP / Tools
+    |
+    +--> Memory / Data
 ```
 
-This is a direction, not a claim that every component already exists.
+The current architecture is intentionally incomplete.
 
-## 5. Current state
+Do not assume that planned components are already implemented.
 
-As of 2026-10-06:
+## Current Runtime Direction
 
-- Git and GitHub repository are established.
-- Python 3.13 + uv + project virtual environment are established.
-- Node.js/npm are installed.
-- Docker/Compose are installed and verified.
-- Obsidian is installed for human-facing Markdown knowledge work.
-- Ollama is installed and verified.
-- The first local model is being downloaded/validated.
-- No large agent framework has been adopted yet.
-- PostgreSQL, vector search, Open WebUI, LangChain, CrewAI, and similar components remain intentionally unselected unless a concrete requirement appears.
+Ollama is the initial local AI runtime.
 
-## 6. How an AI should work in this repository
+The first model baseline is currently Qwen3.5 27B MLX on Apple Silicon.
 
-Before proposing architecture:
+This is an experimental runtime/model choice and should not be treated as a permanent architectural commitment.
 
-1. Read this file.
-2. Read `AI_CONTEXT.md`.
-3. Inspect relevant files under `architecture/`, `agents/`, `memory/`, `mcp/`, `knowledge/`, and `learning/`.
-4. Read `DECISIONS.md` before contradicting or replacing an established decision.
-5. Treat `learning/` as engineering evidence, including failures and gotchas.
-6. Separate:
-   - verified facts
-   - current decisions
-   - assumptions
-   - proposals
-   - unresolved questions
-7. Prefer the smallest reversible change that moves the project forward.
-8. When challenging the architecture, explain the trade-off and provide an alternative.
+## Durable Knowledge
 
-## 7. Do not
+Markdown is the current durable knowledge format.
 
-- Invent project history.
-- Treat a proposal as an implemented component.
-- Introduce dependencies merely because they are popular.
-- Store sensitive personal/family data in source code or public repositories.
-- Replace an established decision silently.
-- Optimize for framework features before the underlying requirement is clear.
+The intended human-facing workflow is:
 
-## 8. Decision protocol
+```text
+Obsidian
+   |
+   v
+Markdown
+   |
+   v
+Git
+   |
+   v
+Knowledge Layer
+   |
+   v
+Search / Retrieval
+   |
+   v
+Agents / hiwan.ai
+```
 
-For meaningful architectural changes, produce:
+Do not introduce a database or vector store merely because it is popular.
 
-- Problem
-- Current state
-- Options considered
-- Trade-offs
-- Recommendation
-- Reversibility / migration impact
-- Security/privacy impact
-- Decision owner
+Introduce structured storage when a demonstrated requirement justifies it.
 
-Record accepted decisions in `DECISIONS.md`.
+## Architecture Governance
 
-## 9. Review and maintenance
+Meaningful architecture changes follow:
 
-This file is intentionally short and stable.
+```text
+Proposal
+   |
+   v
+Independent Review
+   |
+   v
+Richard Decision
+   |
+   v
+DECISIONS.md
+   |
+   v
+Implementation
+   |
+   v
+Learning / Post-Implementation Review
+```
 
-Update it only when a principle, project-wide workflow, or durable architectural invariant changes.
+Proposal != Review != Decision.
 
-Do not put daily progress or detailed history here. Put those in `AI_CONTEXT.md`, `learning/`, architecture documents, or Git history.
+An AI reviewer must not silently turn a proposal into an accepted decision.
+
+## Evidence Labels
+
+When reasoning about the project, distinguish:
+
+- FACT — verified current state
+- DECISION — explicitly accepted project decision
+- PROPOSAL — suggested future change
+- ASSUMPTION — unverified belief
+- OPEN — unresolved question
+
+Do not present assumptions or proposals as facts.
+
+## AI Working Rules
+
+Before making meaningful architecture recommendations, read:
+
+1. `AGENTS.md`
+2. `AI_CONTEXT.md`
+3. `ARCHITECTURE.md`
+4. `DECISIONS.md`
+5. `ROADMAP.md`
+6. relevant files under `architecture/`
+7. relevant learning notes when historical context matters
+8. `skills/hiwan-ai-review/SKILL.md` when performing architecture review
+
+Do not invent project history.
+
+Do not claim that an unimplemented feature exists.
+
+Do not introduce dependencies merely because they are popular.
+
+Do not silently replace an existing accepted decision.
+
+When a proposal conflicts with an accepted decision, explicitly identify the conflict.
+
+## Family Agent Safety
+
+Future family-agent capabilities must be identity-aware and permission-aware.
+
+Agents should never receive unrestricted access to personal or family data.
+
+High-impact actions should require explicit policy checks and, where appropriate, human approval.
+
+Examples include:
+
+- financial actions
+- external communication
+- account changes
+- destructive operations
+- sensitive data sharing
+
+## Maintainability
+
+Keep project context concise and stable.
+
+Use:
+
+- `AGENTS.md` for AI operating rules
+- `AI_CONTEXT.md` for broader project context
+- `ARCHITECTURE.md` for current architecture
+- `DECISIONS.md` for accepted decisions
+- `ROADMAP.md` for planned work
+- `architecture/` for proposals, reviews, and evidence
+- `learning/` for chronological learning history
+
+Do not turn `AGENTS.md` into a daily journal.
+
+## Final Authority
+
+Richard remains the final decision-maker.
+
+No model, framework, reviewer, or automated process has authority to approve an architecture decision on behalf of the project owner.

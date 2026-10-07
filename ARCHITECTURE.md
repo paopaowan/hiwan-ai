@@ -1,32 +1,36 @@
 # Hiwan AI OS Architecture
 
-## Purpose
+## Status
 
-This document describes the current architecture of Hiwan AI OS.
+Current architecture direction.
 
-It records what the system is today and the stable architectural boundaries we intend to preserve.
+This document describes the current system shape, not every future implementation detail.
 
-Architecture proposals and independent reviews belong under `architecture/`.
+Architecture changes should be evaluated through the proposal/review/decision process.
 
-## Architectural North Star
+## North Star
 
 ```text
 hiwan.ai
-    ↓
+    |
+    v
 API Gateway
-    ↓
+    |
+    v
 Agent Runtime
-    ↓
-Identity / Policy
-    ↓
-MCP / Tools
-    ↓
-Data / Memory
+    |
+    +--> Identity / Policy
+    |
+    +--> MCP / Tools
+    |
+    +--> Memory / Data
 ```
 
-Local-first infrastructure is the preferred foundation for private and durable data.
+The long-term goal is a local-first personal AI system that can evolve into a family AI system while keeping user-owned data portable and independent from any particular model or agent framework.
 
-## Core Boundaries
+## Core Architectural Boundaries
+
+The system deliberately separates:
 
 ```text
 Model
@@ -48,141 +52,314 @@ Policy
 
 ### Model
 
-The model provides inference.
+A model performs inference.
 
-Models are replaceable and must not own durable user knowledge.
+Examples may include local or cloud LLMs.
+
+A model should not own durable user knowledge.
 
 ### Runtime
 
-The runtime provides local or remote model execution.
+A runtime hosts and serves models.
 
-The initial local runtime is Ollama.
+The first local runtime is Ollama.
 
 ### Agent
 
-An agent coordinates reasoning, context, tools, and tasks.
+An agent is application-level behavior and orchestration.
 
-Agent implementations must remain replaceable.
+An agent should not be treated as the storage system for user memory.
 
 ### Tool
 
-Tools provide controlled access to external capabilities and data.
+A tool provides a bounded capability.
 
-MCP is the preferred interoperability direction for tool integration where appropriate.
+Examples include filesystem operations, web access, APIs, and future MCP tools.
 
 ### Memory
 
-Memory is a durable knowledge and context layer independent of a specific model or agent.
+Memory represents information useful to agents over time.
+
+Memory storage must remain independent from any single agent implementation.
 
 ### Data
 
-Data includes files, documents, structured records, databases, and other user-owned information.
+Data is the durable source of truth.
+
+This may eventually include files, Markdown, relational data, object storage, search indexes, or other stores.
 
 ### Identity
 
-Identity determines who is acting.
+Identity determines who is requesting an operation.
 
-The eventual family agent must support distinct identities and scopes.
+Future family-agent functionality requires multiple identities and explicit identity boundaries.
 
 ### Policy
 
-Policy determines what an identity is allowed to access or do.
+Policy determines what an identity and agent are allowed to do.
 
-The access model is:
+The intended access model is:
 
 ```text
-Identity → Policy → Tool → Data
+Identity
+   ->
+Policy
+   ->
+Tool
+   ->
+Data
 ```
 
-High-impact actions should require explicit human approval.
+Agents should not bypass this boundary.
+
+## Public Software / Private Data Boundary
+
+Hiwan AI deliberately separates its public software layer from its private data layer.
+
+```text
+                   PUBLIC
+GitHub ─────────────────────────────────
+  |
+  +-- Source Code
+  +-- Architecture
+  +-- Documentation
+  +-- AI Context
+  +-- Reviews
+  +-- Non-sensitive Learning
+                   |
+                   | runtime
+                   v
+               LOCAL HOST
+                   |
+      +------------+------------+
+      |                         |
+   PRIVATE                   PRIVATE
+Personal Data              Family Data
+Memory                     Memory
+Documents                  Conversations
+Finance                    Sensitive Records
+Credentials                Private Media
+```
+
+The public repository must never become the storage location for personal or family data.
+
+Private data is accessed through:
+
+```text
+Identity -> Policy -> Tool -> Data
+```
+
+rather than through direct repository access.
+
+This boundary is a core architectural invariant.
 
 ## Local-First Data Tiers
 
 ### L0 — Local Only
 
-Examples:
+Highly sensitive information should remain local:
 
-- family-sensitive information
+- family data
 - private conversations
-- credentials and secrets
-- highly sensitive personal data
+- credentials
+- sensitive personal records
+- private documents
 
 ### L1 — Local + Encrypted Backup
 
-Examples:
+User-owned durable knowledge may use encrypted backup:
 
-- durable knowledge
 - learning history
-- project memory
-- personal documents
+- project knowledge
+- non-sensitive personal knowledge
+- documentation
+- structured knowledge
 
 ### L2 — Cloud Allowed
 
-Examples:
+Non-sensitive workloads may use cloud services:
 
-- non-sensitive inference
-- public web research
+- public research
 - coding assistance
-- public website functionality
+- public website content
+- cloud inference
+- public web search
 
-The classification of a specific dataset must be decided before introducing cloud access.
+The exact data-classification implementation remains future work.
 
-## Current Runtime Direction
+## Durable Knowledge
 
-The first local AI runtime is Ollama.
+Markdown is the current durable knowledge format.
 
-The initial baseline model is Qwen3.5 27B MLX on Apple Silicon.
-
-This is an implementation choice for the current experiment, not a permanent model dependency.
-
-## Knowledge and Memory Direction
-
-Durable knowledge should survive model and runtime replacement.
-
-The current human-facing knowledge workflow is:
+The intended flow is:
 
 ```text
 Obsidian
-    ↓
+   |
+   v
 Markdown
-    ↓
+   |
+   v
 Git
-    ↓
+   |
+   v
 Knowledge Layer
-    ↓
+   |
+   v
 Search / Retrieval
-    ↓
+   |
+   v
 Agents / hiwan.ai
 ```
 
-PostgreSQL and vector/search infrastructure will be introduced when concrete requirements justify them.
+Knowledge should remain portable across models and frameworks.
 
-## Architecture Review
+## Initial Local AI Runtime
 
-Meaningful architectural changes should follow:
+Ollama is the initial local AI runtime.
+
+The first model baseline is currently:
 
 ```text
-Proposal
-    ↓
-Independent Reviews
-    ↓
-Reconciliation
-    ↓
-Richard Decision
-    ↓
-DECISIONS.md
-    ↓
-Implementation
+Qwen3.5 27B MLX
 ```
 
-See:
+This is a baseline for experimentation, not a permanent model commitment.
 
-- `architecture/README.md`
-- `architecture/proposals/README.md`
-- `architecture/reviews/PROTOCOL.md`
+The architecture must remain capable of replacing the model or runtime without redesigning durable knowledge and application-level identity/policy boundaries.
 
-## Current Status
+## Current Repository Governance
 
-This document describes the current architectural direction, not every implementation detail.
+Architecture changes follow:
 
-When a proposal conflicts with this document, the proposal must be treated as a proposal until explicitly accepted and recorded in `DECISIONS.md`.
+```text
+IDEA
+  |
+  v
+PROPOSAL
+  |
+  v
+INDEPENDENT REVIEWS
+  |
+  v
+RECONCILIATION
+  |
+  v
+RICHARD DECISION
+  |
+  v
+DECISIONS.md
+  |
+  v
+IMPLEMENTATION
+  |
+  v
+LEARNING / POST-IMPLEMENTATION REVIEW
+```
+
+The repository explicitly separates:
+
+```text
+Proposal != Review != Decision
+```
+
+## Review Dimensions
+
+Meaningful architecture reviews should consider:
+
+- architecture boundaries
+- simplicity
+- reversibility
+- performance
+- security
+- privacy
+- local-first behavior
+- OSS/vendor lock-in
+- family-agent suitability
+- operations
+- maintainability
+- data portability
+- evidence quality
+
+## Current State
+
+Established:
+
+- Apple Silicon development environment
+- Homebrew
+- Git
+- GitHub CLI and SSH authentication
+- private GitHub repository
+- Python 3.13
+- uv
+- Node.js/npm
+- Docker
+- Obsidian
+- initial repository governance
+- architecture proposal/review process
+- Ollama local runtime
+
+Not yet established as permanent architecture:
+
+- agent framework
+- PostgreSQL
+- vector database
+- MCP server architecture
+- production API gateway
+- production web application
+- family identity system
+- production memory implementation
+
+## Architectural Principle
+
+The project should grow by adding the smallest boundary necessary to solve a demonstrated problem.
+
+Avoid building infrastructure merely because it may be useful someday.
+
+Prefer:
+
+```text
+evidence
+  ->
+small experiment
+  ->
+review
+  ->
+decision
+  ->
+implementation
+```
+
+over premature platform construction.
+
+## Future Direction
+
+The current roadmap is:
+
+```text
+Foundation
+   ->
+Local AI Runtime
+   ->
+Minimal Agent Loop
+   ->
+Knowledge Layer
+   ->
+Memory / Structured Data
+   ->
+MCP / Tools
+   ->
+hiwan.ai
+   ->
+Family Agent
+   ->
+Continuous Multi-AI Collaboration
+```
+
+Each stage should remain independently useful.
+
+## Security Invariant
+
+Private data must not become public merely because the software repository is public.
+
+Public software and private user data are separate architectural layers.
