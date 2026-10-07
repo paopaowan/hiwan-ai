@@ -171,3 +171,152 @@ and:
 ```text
 Identity -> Policy -> Tool -> Data
 ```
+## Decision 011 — Physical Private Data Boundary
+
+**Status:** ACCEPTED
+
+Private runtime data must be physically separated from the public Git repository.
+
+The public software repository remains:
+
+```text
+~/hiwan-ai/
+```
+
+Private runtime data will use:
+
+```text
+~/.hiwan/
+```
+
+Phase 1 will separate:
+
+```text
+~/.hiwan/dev/
+~/.hiwan/private/
+```
+
+Development should default to synthetic/test data.
+
+`.gitignore` is defense-in-depth only and must not be treated as the primary privacy boundary.
+
+Basic secret scanning should be introduced as an additional low-cost repository safeguard.
+
+### Rationale
+
+Private personal/family data should not be exposable through an accidental Git operation because it should not reside inside the Git working tree in the first place.
+
+---
+
+## Decision 012 — Architecture Governance Threshold
+
+**Status:** ACCEPTED
+
+Formal proposal and independent multi-AI review are required only for high-impact architecture changes.
+
+Examples include:
+
+- changing the model runtime
+- introducing PostgreSQL
+- introducing a dedicated Vector DB
+- changing memory/data ownership
+- changing Identity/Policy boundaries
+- changing the Public/Private boundary
+- introducing a major agent framework
+- introducing cloud storage for private data
+- changing the family permission model
+
+Normal development does not require full architecture governance.
+
+Examples include:
+
+- bug fixes
+- prompt changes
+- UI improvements
+- adding a small Tool
+- refactoring within accepted boundaries
+- experiments
+- performance tuning
+
+Normal flow:
+
+```text
+IMPLEMENT -> TEST -> LEARNING
+```
+
+High-impact architecture flow:
+
+```text
+PROPOSAL -> INDEPENDENT REVIEW -> RICHARD DECISION -> DECISIONS.md
+```
+
+### Rationale
+
+The project must preserve architecture discipline without allowing governance overhead to slow a single-owner implementation loop.
+
+---
+
+## Decision 013 — Tool / MCP Separation
+
+**Status:** ACCEPTED
+
+`Tool` is a core architectural abstraction.
+
+MCP is a protocol/adapter implementation option and is not the architectural center of Hiwan AI.
+
+The intended direction is:
+
+```text
+Agent
+  ->
+Tool Interface
+  +-- Local Python Tool
+  +-- Local Node Tool
+  +-- HTTP Tool
+  +-- MCP Adapter (later)
+```
+
+Phase 1 will use simple local Tools and will not build a full MCP Server/Client architecture.
+
+### Rationale
+
+This preserves portability, reduces protocol lock-in, and keeps the first executable agent loop small.
+
+---
+
+## Decision 014 — Phase 1 Tracer Bullet Strategy
+
+**Status:** ACCEPTED
+
+The immediate priority is an end-to-end Tracer Bullet rather than additional architecture expansion.
+
+Phase 1 execution order is:
+
+```text
+1A  Physical Private Data Root
+1B  Ollama + Qwen3.5 Runtime Verification
+1C  Minimal LLM Client
+1D  Minimal Agent Loop
+1E  One Local Tool
+1F  Minimal SQLite Persistence
+1G  Tracer Bullet End-to-End
+1H  Measure / Learn / Review
+```
+
+SQLite is the initial persistence mechanism for the Tracer Bullet because it is local, single-file, serverless, portable, debuggable, and reversible.
+
+Phase 1 explicitly defers:
+
+- PostgreSQL
+- dedicated Vector DB
+- large Agent frameworks
+- full MCP infrastructure
+- full Family identity/authorization systems
+- distributed architecture
+- heavy observability infrastructure
+
+The Agent may maintain transient execution state, but durable user memory and durable user data must remain outside Agent ownership.
+
+### Rationale
+
+The project now needs execution evidence proving that Model, Runtime, Agent, Tool, Policy placeholders, and Persistence can operate together on the target Mac mini before adding further infrastructure.
