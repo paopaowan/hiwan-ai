@@ -19,7 +19,10 @@ STOPWORDS = frozenset({
     'which', 'who', 'why', 'with', 'hiwan', 'ai',
 })
 WORD_RE = re.compile(r'[^\W_]+', re.UNICODE)
-SECTION_RE = re.compile(r'^##(?!#)\s+(.+?)\s*$', re.MULTILINE)
+SECTION_RE = re.compile(r'^(#{2,4})\s+(.+?)\s*$', re.MULTILINE)
+MAX_PASSAGE_LINES = 90
+WINDOW_LINES = 65
+OVERLAP_LINES = 12
 
 
 def tokenize(text: str) -> tuple[str, ...]:
@@ -102,25 +105,104 @@ class MarkdownKnowledgeBase:
 
     @staticmethod
     def _passages(doc: KnowledgeDocument) -> list[_Passage]:
+        """Split by Markdown sections, subdividing only *oversized* sections.
+
+        Small accepted decisions retain their rationale within the same
+        passage. Long learning logs and heading-free imported reviews are
+        split into line-bounded, overlapping evidence windows.
+        """
         lines = doc.content.splitlines()
-        boundaries = [index for index, line in enumerate(lines)
-                      if SECTION_RE.match(line)]
-        # A document without ## headings stays as a single passage.
-        if not boundaries:
-            return [_Passage(doc.path, doc.title, doc.title,
-                             1, max(1, len(lines)), doc.content)]
-        starts = ([0] if boundaries[0] > 0 else []) + boundaries
-        ends = starts[1:] + [len(lines)]
-        result = []
-        for start, end in zip(starts, ends):
-            section = '\n'.join(lines[start:end]).strip()
-            if not section:
+        if not lines:
+            return []
+
+        main_headings = [
+            index for index, line in enumerate(lines)
+            if (match := SECTION_RE.match(line)) and len(match.group(1)) == 2
+        ]
+        main_starts = ([0] if not main_headings or main_headings[0] != 0 else [])
+        main_starts += main_headings
+        main_ends = main_starts[1:] + [len(lines)]
+        result: list[_Passage] = []
+
+        def emit(begin: int, finish: int, heading: str) -> None:
+            if finish <= begin:
+                return
+            if finish - begin <= MAX_PASSAGE_LINES:
+                text = '\n'.join(lines[begin:finish]).strip()
+                if text:
+                    result.append(_Passage(
+                        doc.path, doc.title, heading,
+                        begin + 1, finish, text,
+                    ))
+                return
+            offset = 0
+            length = finish - begin
+            while offset < length:
+                win_start = begin + offset
+                win_end = min(finish, win_start + WINDOW_LINES)
+                text = '\n'.join(lines[win_start:win_end]).strip()
+                if text:
+                    result.append(_Passage(
+                        doc.path, doc.title, heading,
+                        win_start + 1, win_end, text,
+                    ))
+                if win_end == finish:
+                    break
+                offset += WINDOW_LINES - OVERLAP_LINES
+
+        for start, end in zip(main_starts, main_ends):
+            match = SECTION_RE.match(lines[start])
+            heading = match.group(2).strip() if match else doc.title
+            if end - start <= MAX_PASSAGE_LINES:
+                emit(start, end, heading)
                 continue
-            heading_match = SECTION_RE.match(lines[start])
-            heading = heading_match.group(1).strip() if heading_match else doc.title
-            result.append(_Passage(doc.path, doc.title, heading,
-                                   start + 1, end, section))
+
+            subheadings = [
+                (i, sub.group(1).__len__(), sub.group(2).strip())
+                for i in range(start + 1, end)
+                if (sub := SECTION_RE.match(lines[i])) and len(sub.group(1)) > 2
+            ]
+            sub_starts = ([start] if not subheadings else [start] + [i for i, _, _ in subheadings])
+            sub_ends = sub_starts[1:] + [end]
+            by_start = {i: (level, name) for i, level, name in subheadings}
+            ancestors: list[tuple[int, str]] = []
+
+            for begin, finish in zip(sub_starts, sub_ends):
+                info = by_start.get(begin)
+                if info:
+                    level, name = info
+                    ancestors = [(l, n) for l, n in ancestors if l < level]
+                    ancestors.append((level, name))
+                subheading = ' / '.join([heading] + [n for _, n in ancestors])
+                emit(begin, finish, subheading)
+
         return result
+
+    @classmethod
+    def _focused_snippet(cls, content: str,
+                         terms: tuple[str, ...], max_chars: int = 1000) -> str:
+        if len(content) <= max_chars:
+            return content
+
+        # Choose a locally relevant excerpt instead of unconditionally taking
+        # the first 1000 characters of a long Markdown passage.
+        matches = list(WORD_RE.finditer(content.casefold()))
+        positions = [m.start() for m in matches if m.group() in terms]
+        if not positions:
+            return content[:max_chars].rstrip() + '\n...'
+
+        best_start, best_score = 0, -1
+        for pos in positions:
+            start = max(0, min(pos - max_chars // 3, len(content) - max_chars))
+            window = content[start:start + max_chars]
+            words = tokenize(window)
+            coverage = len(set(words) & set(terms))
+            phrase = cls._longest_query_phrase(words, terms)
+            score = 10 * coverage + 5 * phrase * phrase
+            if score > best_score:
+                best_start, best_score = start, score
+        snippet = content[best_start:best_start + max_chars].strip()
+        return ('...\n' if best_start else '') + snippet + ('\n...' if best_start + max_chars < len(content) else '')
 
     @staticmethod
     def _longest_query_phrase(words: tuple[str, ...], terms: tuple[str, ...]) -> int:
@@ -151,10 +233,8 @@ class MarkdownKnowledgeBase:
         # frequency: repeating the same phrase 100 times cannot game rank.
         score = (12 * matched + 7 * heading_matches +
                  5 * phrase_size * phrase_size)
-        # Snippet text is source-exact apart from whitespace truncation.
-        max_chars = 1000
-        content = passage.content
-        snippet = content if len(content) <= max_chars else content[:max_chars].rstrip() + '\n...'
+        # Keep text source-exact and focus large excerpts near query terms.
+        snippet = cls._focused_snippet(passage.content, terms)
         return SearchHit(
             path=passage.path, title=passage.title,
             heading=passage.heading, snippet=snippet, score=score,

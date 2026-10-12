@@ -1,0 +1,62 @@
+[
+  {
+    "id": "P2C-01", "category": "decision",
+    "question": "What is the Public Software Private Data boundary in Hiwan AI?",
+    "expected_any": ["DECISIONS.md", "ARCHITECTURE.md"]
+  },
+  {
+    "id": "P2C-02", "category": "decision",
+    "question": "Where must private runtime data live relative to the public Git repository?",
+    "expected_any": ["DECISIONS.md", "architecture/reviews/2026-10-07-consensus-architecture-v1.md"]
+  },
+  {
+    "id": "P2C-03", "category": "decision",
+    "question": "Why is .gitignore only defense-in-depth rather than the primary privacy boundary?",
+    "expected_any": ["DECISIONS.md", "learning/2026-10-07.md"]
+  },
+  {
+    "id": "P2C-04", "category": "historical_review",
+    "question": "What concern did Gemini raise about keeping private data inside the Git repository?",
+    "expected_any": ["architecture/reviews/gemini/2026-10-07-architecture-review-v1.md"]
+  },
+  {
+    "id": "P2C-05", "category": "decision",
+    "question": "Why was MCP deferred while keeping Tool as a separate abstraction?",
+    "expected_any": ["DECISIONS.md", "architecture/reviews/2026-10-07-consensus-architecture-v1.md"]
+  },
+  {
+    "id": "P2C-06", "category": "architecture",
+    "question": "What is the Identity Policy Tool Data access boundary for Hiwan AI?",
+    "expected_any": ["ARCHITECTURE.md", "DECISIONS.md", "AGENTS.md"]
+  },
+  {
+    "id": "P2C-07", "category": "learning",
+    "question": "What failed during the Gitleaks 8.30.1 synthetic secret positive-control test?",
+    "expected_any": ["learning/2026-10-07.md", "architecture/reviews/2026-10-07-phase1-implementation-review.md"]
+  },
+  {
+    "id": "P2C-08", "category": "learning",
+    "question": "Why did the Qwen3.5 num_predict 32 test return empty content with thinking enabled?",
+    "expected_any": ["learning/2026-10-07.md", "architecture/reviews/2026-10-07-phase1-implementation-review.md"]
+  },
+  {
+    "id": "P2C-09", "category": "implementation",
+    "question": "Where is the Phase 1 SQLite agent run database persisted?",
+    "expected_any": ["learning/2026-10-07.md", "architecture/reviews/2026-10-07-phase1-implementation-review.md"]
+  },
+  {
+    "id": "P2C-10", "category": "implementation",
+    "question": "What components did the Phase 1G end-to-end tracer bullet prove?",
+    "expected_any": ["learning/2026-10-07.md", "architecture/reviews/2026-10-07-phase1-implementation-review.md"]
+  },
+  {
+    "id": "P2C-11", "category": "learning",
+    "question": "What went wrong in Phase 2A and Phase 2B lexical ranking and grounding tests?",
+    "expected_any": ["learning/2026-10-12.md"]
+  },
+  {
+    "id": "P2C-12", "category": "historical_review",
+    "question": "What did Gemini say about governance overhead for a solo developer?",
+    "expected_any": ["architecture/reviews/gemini/2026-10-07-architecture-review-v1.md"]
+  }
+]

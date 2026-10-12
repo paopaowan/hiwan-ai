@@ -57,6 +57,11 @@ class KnowledgeAgent:
             'Distinguish the primary mechanism from defense-in-depth safeguards\n'
             'using evidence; never infer either role from a file name alone.\n'
             'Do not claim that file names alone prove a factual statement.\n'
+            'When describing privacy safeguards, distinguish a required design\n'
+            'from a guarantee: never claim that accidental disclosure is impossible.\n'
+            'Distinguish accepted architecture from verified implementation.\n'
+            'Do not imply full identity, RBAC, or family authorization is already\n'
+            'implemented unless the evidence explicitly verifies it.\n'
             'Answer concisely and identify applicable evidence as [S1], [S2], etc.\n'
             f'\nEvidence:\n{context}\n\nQuestion:\n{question}\n'
         )
