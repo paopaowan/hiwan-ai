@@ -51,6 +51,8 @@ class OllamaClient:
         except HTTPError as e:
             body = e.read().decode("utf-8", "replace")
             raise RuntimeError(f"Ollama HTTP error {e.code}: {body or e.reason}") from e
+        except TimeoutError as e:
+            raise RuntimeError(f"Ollama request timed out after {self.timeout_seconds}s") from e
         except URLError as e:
             raise RuntimeError(f"Ollama unreachable at {self.base_url}: {e.reason}") from e
 

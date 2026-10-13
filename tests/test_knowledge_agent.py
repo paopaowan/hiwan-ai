@@ -38,7 +38,7 @@ def test_knowledge_agent_retrieves_context_and_returns_sources(tmp_path: Path) -
 
     llm = FakeLLM(
         "The public repository is ~/hiwan-ai and private runtime data "
-        "is physically separated under ~/.hiwan."
+        "is physically separated under ~/.hiwan [S1]."
     )
     agent = KnowledgeAgent(
         llm=llm,
@@ -54,7 +54,8 @@ def test_knowledge_agent_retrieves_context_and_returns_sources(tmp_path: Path) -
     assert result.hits[0].path == "DECISIONS.md"
 
     messages, kwargs = llm.calls[0]
-    prompt = messages[0]["content"]
+    prompt = "\n".join(message["content"] for message in messages)
+    assert [m["role"] for m in messages] == ["system", "user"]
 
     assert "DECISIONS.md" in prompt
     assert "~/.hiwan" in prompt

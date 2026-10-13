@@ -100,7 +100,7 @@ def test_answer_provenance_maps_to_real_section(tmp_path):
     )
     assert result.sources[0] == 'DECISIONS.md'
     assert result.evidence[0].location.startswith('DECISIONS.md:L')
-    assert '[S1]' in fake.messages[0][0]['content']
+    assert '"id": "S1"' in fake.messages[0][1]['content']
 
 
 def test_no_evidence_skips_llm(tmp_path):

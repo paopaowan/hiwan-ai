@@ -30,13 +30,22 @@ class Evidence:
 
 def question_intent(question: str) -> str:
     terms = set(query_terms(question))
-    if terms & {'gemini', 'review', 'critique', 'criticize', 'feedback'}:
+    # Explicit questions *about an author's opinion* are historical reviews,
+    # even when the subject is a policy. Review *policy* itself is canonical.
+    q = question.casefold()
+    asks_reviewer = 'gemini' in terms and any(
+        clue in q for clue in ('what did', 'what concern', 'according to',
+                              'gemini say', 'gemini state', 'gemini recommend')
+    )
+    if asks_reviewer:
         return 'review'
     if terms & {'decision', 'decisions', 'policy', 'boundary',
                 'requirement', 'rule', 'rules', 'must', 'should',
                 'defer', 'deferred', 'postpone', 'postponed',
                 'accepted', 'adopted', 'decided'}:
         return 'policy'
+    if terms & {'gemini', 'review', 'critique', 'criticize', 'feedback'}:
+        return 'review'
     return 'general'
 
 
@@ -52,7 +61,7 @@ def _authority(hit: SearchHit, intent: str) -> int:
         return 3
     if path == 'ARCHITECTURE.md':
         return 2
-    if path == 'architecture/reviews/2026-10-07-consensus-architecture-v1.md':
+    if re.fullmatch(r'architecture/reviews/\d{4}-\d{2}-\d{2}-consensus-architecture-v[\w.]+\.md', path):
         return 2
     if path in {'AGENTS.md', 'AI_CONTEXT.md'}:
         return 1

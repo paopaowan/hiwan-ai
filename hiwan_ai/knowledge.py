@@ -20,9 +20,35 @@ STOPWORDS = frozenset({
 })
 WORD_RE = re.compile(r'[^\W_]+', re.UNICODE)
 SECTION_RE = re.compile(r'^(#{2,4})\s+(.+?)\s*$', re.MULTILINE)
+HEADING_RE = re.compile(r'^(#{1,4})[ \t]+(.+?)[ \t]*$')
+FENCE_RE = re.compile(r'^ {0,3}(`{3,}|~{3,})(.*)$')
 MAX_PASSAGE_LINES = 90
 WINDOW_LINES = 65
 OVERLAP_LINES = 12
+
+
+def _markdown_headings(lines: list[str]) -> dict[int, tuple[int, str]]:
+    """ATX headings outside fenced code (backtick or tilde fences)."""
+    headings: dict[int, tuple[int, str]] = {}
+    fence_char = ''
+    fence_width = 0
+    for i, line in enumerate(lines):
+        marker = FENCE_RE.match(line)
+        if fence_char:
+            if (marker and marker.group(1)[0] == fence_char
+                    and len(marker.group(1)) >= fence_width
+                    and not marker.group(2).strip()):
+                fence_char = ''
+                fence_width = 0
+            continue
+        if marker:
+            fence_char = marker.group(1)[0]
+            fence_width = len(marker.group(1))
+            continue
+        match = HEADING_RE.match(line)
+        if match:
+            headings[i] = (len(match.group(1)), match.group(2).strip())
+    return headings
 
 
 def tokenize(text: str) -> tuple[str, ...]:
@@ -72,7 +98,9 @@ class _Passage:
 class MarkdownKnowledgeBase:
     def __init__(self, root: Path | str, *, excluded_dirs: set[str] | None = None):
         self.root = Path(root).expanduser().resolve()
-        self.excluded_dirs = EXCLUDED_DIRS | frozenset(excluded_dirs or ())
+        self.excluded_dirs = frozenset(
+            part.casefold() for part in EXCLUDED_DIRS | frozenset(excluded_dirs or ())
+        )
         if not self.root.exists():
             raise FileNotFoundError(self.root)
         if not self.root.is_dir():
@@ -81,9 +109,15 @@ class MarkdownKnowledgeBase:
     def _safe_markdown_files(self):
         for path in sorted(self.root.rglob('*.md')):
             relative = path.relative_to(self.root)
-            if any(part in self.excluded_dirs for part in relative.parts[:-1]):
+            if any(part.casefold() in self.excluded_dirs for part in relative.parts[:-1]):
                 continue
             if path.is_symlink() or not path.is_file():
+                continue
+            # Hard links may alias private files outside the checkout.
+            try:
+                if path.stat().st_nlink > 1:
+                    continue
+            except OSError:
                 continue
             # Protect even against links through intermediate directories.
             if not path.resolve().is_relative_to(self.root):
@@ -94,8 +128,9 @@ class MarkdownKnowledgeBase:
         result = []
         for path in self._safe_markdown_files():
             text = path.read_text(encoding='utf-8', errors='replace')
-            match = re.search(r'^#\s+(.+)$', text, re.MULTILINE)
-            title = match.group(1).strip() if match else path.stem
+            headings = _markdown_headings(text.splitlines())
+            title = next((name for level, name in headings.values()
+                          if level == 1), path.stem)
             result.append(KnowledgeDocument(
                 path=path.relative_to(self.root).as_posix(),
                 title=title,
@@ -115,10 +150,9 @@ class MarkdownKnowledgeBase:
         if not lines:
             return []
 
-        main_headings = [
-            index for index, line in enumerate(lines)
-            if (match := SECTION_RE.match(line)) and len(match.group(1)) == 2
-        ]
+        headings = _markdown_headings(lines)
+        main_headings = [index for index, (level, _) in headings.items()
+                         if level == 2]
         main_starts = ([0] if not main_headings or main_headings[0] != 0 else [])
         main_starts += main_headings
         main_ends = main_starts[1:] + [len(lines)]
@@ -151,17 +185,18 @@ class MarkdownKnowledgeBase:
                 offset += WINDOW_LINES - OVERLAP_LINES
 
         for start, end in zip(main_starts, main_ends):
-            match = SECTION_RE.match(lines[start])
-            heading = match.group(2).strip() if match else doc.title
-            if end - start <= MAX_PASSAGE_LINES:
-                emit(start, end, heading)
-                continue
-
+            info = headings.get(start)
+            heading = info[1] if info and info[0] == 2 else doc.title
             subheadings = [
-                (i, sub.group(1).__len__(), sub.group(2).strip())
-                for i in range(start + 1, end)
-                if (sub := SECTION_RE.match(lines[i])) and len(sub.group(1)) > 2
+                (i, level, name)
+                for i, (level, name) in headings.items()
+                if start < i < end and level > 2
             ]
+            if end - start <= MAX_PASSAGE_LINES:
+                # Keep concise decisions together, but preserve subheading terms.
+                names = [name for _, _, name in subheadings]
+                emit(start, end, ' / '.join([heading] + names))
+                continue
             sub_starts = ([start] if not subheadings else [start] + [i for i, _, _ in subheadings])
             sub_ends = sub_starts[1:] + [end]
             by_start = {i: (level, name) for i, level, name in subheadings}
@@ -180,7 +215,7 @@ class MarkdownKnowledgeBase:
 
     @classmethod
     def _focused_snippet(cls, content: str,
-                         terms: tuple[str, ...], max_chars: int = 1000) -> str:
+                         terms: tuple[str, ...], max_chars: int = 2000) -> str:
         if len(content) <= max_chars:
             return content
 
