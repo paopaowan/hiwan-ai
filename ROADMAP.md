@@ -1,158 +1,82 @@
-# Hiwan AI OS Roadmap
+# Hiwan AI OS — Directional Roadmap
 
-## Purpose
+**Public progress summary — 2026-10-17.** This roadmap records architectural direction and evidence categories, not an assurance that every listed feature is deployed. The public GitHub main branch may lag behind local development branches.
 
-This roadmap describes the intended evolution of Hiwan AI OS.
+## North star
 
-It is directional rather than a promise of exact dates.
+Build a personal AI platform that can extend safely to family use, while gradually making AI coding agents capable of doing most routine implementation, testing, and deployment preparation under human direction.
 
-Architecture proposals and reviews may change the roadmap before implementation.
+The platform separates **Family Chat**, **Dev OS**, and **Admin OS**. All three rely on local-first data stewardship and explicit identity and policy boundaries.
 
-## Phase 0 — Foundation
+## Track 1 — Family Chat
 
-**Status:** Completed
+**Current direction:** feedback-led improvements after an internal test phase.
 
-- Apple Silicon development environment
-- Homebrew
-- Git and GitHub CLI
-- Private GitHub repository
-- Python 3.13
-- uv
-- Node.js / npm
-- Docker
-- Obsidian
-- Learning journal
-- AI project context
-- Architecture review protocol
+- Natural-language chat and personal-knowledge workflows
+- Replaceable cloud-model providers with explicit purpose-based data sharing
+- Independent user memory and data ownership
+- Clear boundaries between family-facing behavior and administrative abilities
 
-## Phase 1 — Local AI Runtime
+**Do not infer:** a universal cloud-provider failover guarantee, production-grade encrypted memory storage, or completed data-governance features solely from this roadmap.
 
-**Status:** In Progress
+## Track 2 — Dev OS
 
-Goals:
+**Immediate focus:** verify an isolated, terminal-first coding-agent development loop.
 
-- install and validate Ollama
-- install and benchmark an initial local model
-- understand local model API behavior
-- verify inference performance on Apple Silicon
-- create a minimal Python client
-- keep the model/runtime boundary replaceable
+1. Inventory the local and remote repository state; preserve and reconcile existing work before further public updates.
+2. Prepare an OS-isolated, SSH-compatible development environment; do not rely on a graphical desktop session.
+3. Evaluate Codex first using a shared task contract and test evidence.
+4. Validate Claude Code as a real backup through equivalent work and an explicit rollback exercise; keep alternative regional tooling under consideration.
+5. Later, research Hermes Agent in a separate non-production sandbox.
 
-Initial experiment:
+The isolated practice environment is intended for rapid development with synthetic data. Real family data, paid API calls, deployments to active family services, and public publication remain separately authorized activities.
 
-- Ollama
-- Qwen3.5 27B MLX
+## Track 3 — First application: Portuguese for Angola (pt-AO)
 
-## Phase 2 — Minimal Agent Loop
+### MVP-A — local learning workflow
 
-**Status:** Planned
+First priority:
 
-Goals:
+**Document scan/import -> offline macOS OCR -> local corpus/knowledge store**
 
-- define the smallest useful agent loop
-- model request/response abstraction
-- tool invocation boundary
-- structured context
-- basic logging
-- failure handling
-- human approval boundary
+Then:
 
-Do not introduce a large agent framework unless Phase 2 requirements justify it.
+- A beginner starter pack: **30 business + 30 everyday phrases**
+- Markdown learning notes
+- Translation workflow with locally saved history
+- Flashcards and a simple review experience
+- Local self-recording and playback
 
-## Phase 3 — Knowledge Layer
+The learning store is separate from the family-chat memory store. Cloud OCR, translation, transcription, and other paid services are off until the required use-specific consent and spending safeguards are active.
 
-**Status:** Planned
+### MVP-B — pronunciation
 
-Goals:
+- Record provenance, speaker/accent, license, and quality evidence for each pronunciation asset.
+- Prefer appropriately licensed and validated Angolan Portuguese recordings.
+- If a Portuguese-from-Portugal reference is used temporarily, label it as such rather than claiming pt-AO.
+- Provide listening, slow playback where faithfully supported, and repeat-after-me practice.
+- Do not promise automatic pronunciation scoring without accent-specific validation.
 
-- connect Markdown knowledge
-- define knowledge metadata
-- searchable local knowledge
-- retrieval experiments
-- source attribution
-- distinguish knowledge from conversational memory
+MVP-B is a required part of the full language-learning MVP, but is scheduled separately so that unavailable speech sources do not block MVP-A.
 
-## Phase 4 — Memory and Structured Data
+## Track 4 — Admin OS and data stewardship
 
-**Status:** Planned
+- Separation of identities, privileges, credentials, and execution environments
+- Reviewable, version-pinned deployment approvals
+- Private encrypted backups and **tested recovery**
+- Privacy-aware memory, provider-specific consent, and spending safeguards
+- Eventual automation only after adequate sandboxing and evidence
 
-Goals:
+Admin OS is not equivalent to giving chatbots unrestricted control of the host.
 
-- define memory schemas
-- evaluate PostgreSQL
-- evaluate search/vector requirements
-- define retention and deletion rules
-- preserve data portability
+## Governance and publication
 
-## Phase 5 — MCP and Tool Layer
+- Ordinary coding and testing in an isolated development workspace do not require architecture committee review.
+- High-impact privacy, access, deployment, and provider-cost changes require the existing review and authorization process.
+- The public repository includes only material suitable for public release.
+- The authoritative state of a running system must be checked against its specific local Git SHA, deployed artifact, and test evidence.
+- Architecture **PROPOSED** does not mean **ACCEPTED**; a documented target does not mean an implementation is complete.
 
-**Status:** Planned
+## Next public documentation milestone
 
-Goals:
-
-- local MCP/tool experiments
-- explicit tool permissions
-- tool audit trail
-- identity-aware access
-- safe external actions
-
-## Phase 6 — hiwan.ai
-
-**Status:** Planned
-
-Goals:
-
-- user-facing web application
-- authentication
-- conversation interface
-- learning view
-- knowledge view
-- agent/task visibility
-- approval workflows
-
-## Phase 7 — Family Agent
-
-**Status:** Future
-
-Goals:
-
-- multiple identities
-- family-specific policies
-- scoped memory
-- shared vs private knowledge
-- human approval for high-impact actions
-- family-safe tool access
-
-## Phase 8 — Continuous AI Collaboration
-
-**Status:** Future
-
-Goals:
-
-- GPT / Gemini / Claude independent reviews
-- proposal/review/decision workflow
-- automated repository context
-- architecture regression checks
-- knowledge synchronization
-
-## Current Priority
-
-The immediate priority is:
-
-```text
-Local AI Runtime
-    ↓
-Minimal Agent Loop
-    ↓
-Knowledge Layer
-    ↓
-Memory / Data
-    ↓
-Tools / MCP
-    ↓
-hiwan.ai
-    ↓
-Family Agent
-```
-
-Infrastructure should be introduced only when justified by the next concrete requirement.
+After local changes are reconciled with this public documentation-only update, publish additional sanitized implementation evidence and reviewed code as separate, clearly scoped commits. Preserve original local commit history and private data boundaries.
